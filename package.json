@@ -1,0 +1,32 @@
+{
+  "name": "com.haruchanz64.common-events-engine",
+  "version": "1.0.0",
+  "displayName": "CommonEventsEngine",
+  "description": "RPG Maker-inspired Common Events, global Switches/Variables, Self-Switches, Inventory/Gold ledger, and tick-driven command scripting framework for Unity 6 with built-in uGUI Dialogue Box, Screen Fader, and a UI Toolkit Event Workbench with live step debugging.",
+  "unity": "6000.0",
+  "license": "MIT",
+  "keywords": [
+    "rpg",
+    "common-events",
+    "scripting",
+    "dialogue",
+    "cutscene",
+    "state-machine",
+    "ui-toolkit",
+    "unity-tool"
+  ],
+  "dependencies": {
+    "com.unity.ugui": "2.0.0"
+  },
+  "author": {
+    "name": "haruchanz64",
+    "url": "https://haruchanz64.github.io"
+  },
+  "samples": [
+    {
+      "displayName": "Custom Event Command Sample",
+      "description": "Example custom EventCommandBase auto-discovered by TypeCache in the Event Workbench.",
+      "path": "Samples~/CustomCommands"
+    }
+  ]
+}

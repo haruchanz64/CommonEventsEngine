@@ -1,0 +1,198 @@
+.cee-root {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 0;
+    padding: 10px;
+    background-color: var(--unity-colors-window-background);
+    color: var(--unity-colors-window-text);
+}
+
+.cee-header {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--unity-colors-default-border);
+}
+
+.cee-title {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: var(--unity-colors-window-text);
+    white-space: normal;
+}
+
+.cee-subtitle {
+    font-size: 11px;
+    color: var(--unity-colors-default-text);
+    opacity: 0.72;
+    white-space: normal;
+}
+
+.cee-tabs {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin-bottom: 4px;
+}
+
+.cee-tab {
+    padding: 6px 12px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    background-color: var(--unity-colors-button-background);
+    border-width: 1px;
+    border-color: var(--unity-colors-button-border);
+    color: var(--unity-colors-button-text);
+}
+
+.cee-tab:hover {
+    background-color: var(--unity-colors-button-background-hover);
+}
+
+.cee-tab--active {
+    background-color: var(--unity-colors-highlight-background);
+    border-color: var(--unity-colors-highlight-background);
+    color: #ffffff;
+    -unity-font-style: bold;
+}
+
+.cee-card {
+    background-color: var(--unity-colors-helpbox-background);
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: var(--unity-colors-helpbox-border);
+    padding: 10px;
+    margin-bottom: 8px;
+    min-width: 0;
+}
+
+.cee-card-title {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--unity-colors-window-text);
+    white-space: normal;
+    margin-bottom: 6px;
+}
+
+.cee-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    min-width: 0;
+    margin-bottom: 6px;
+}
+
+.cee-btn {
+    padding: 5px 10px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    background-color: var(--unity-colors-button-background);
+    border-width: 1px;
+    border-color: var(--unity-colors-button-border);
+    color: var(--unity-colors-button-text);
+}
+
+.cee-btn:hover {
+    background-color: var(--unity-colors-button-background-hover);
+}
+
+.cee-btn--primary {
+    background-color: #238636;
+    border-color: #2ea043;
+    color: #ffffff;
+}
+
+.cee-btn--accent {
+    background-color: var(--unity-colors-highlight-background);
+    border-color: var(--unity-colors-highlight-background);
+    color: #ffffff;
+}
+
+.cee-btn--danger {
+    background-color: #b42318;
+    border-color: #d92d20;
+    color: #ffffff;
+}
+
+.cee-cmd-row {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    min-width: 0;
+    padding: 4px 6px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    background-color: var(--unity-colors-box-background);
+    border-left-width: 3px;
+    border-left-color: var(--unity-colors-default-border);
+    color: var(--unity-colors-default-text);
+}
+
+.cee-cmd-row > .cee-btn {
+    margin-bottom: 0;
+    margin-right: 3px;
+    padding: 2px 6px;
+}
+
+.cee-cmd-row--selected {
+    background-color: rgba(58, 134, 255, 0.22);
+    border-left-color: var(--unity-colors-link-text);
+}
+
+.cee-cmd-row--active {
+    background-color: rgba(45, 165, 92, 0.22);
+    border-left-color: #2ea043;
+}
+
+.cee-cmd-row--flow {
+    border-left-color: var(--unity-colors-warning-text);
+}
+
+.cee-cmd-line-num {
+    width: 28px;
+    flex-shrink: 0;
+    color: var(--unity-colors-default-text);
+    opacity: 0.65;
+    font-size: 11px;
+}
+
+.cee-muted {
+    font-size: 11px;
+    color: var(--unity-colors-default-text);
+    opacity: 0.72;
+    white-space: normal;
+    flex-shrink: 1;
+}
+
+.cee-mono {
+    font-size: 11px;
+    color: var(--unity-colors-default-text);
+    white-space: normal;
+    flex-shrink: 1;
+}
+
+.cee-warn {
+    color: var(--unity-colors-warning-text);
+    -unity-font-style: bold;
+    white-space: normal;
+    flex-shrink: 1;
+}
+
+.cee-dialogue-box {
+    background-color: var(--unity-colors-input_field-background);
+    border-width: 1px;
+    border-color: var(--unity-colors-link-text);
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 6px;
+    min-width: 0;
+}

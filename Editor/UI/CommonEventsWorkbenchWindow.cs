@@ -123,7 +123,7 @@ namespace CommonEventsEngine.Editor.UI
         private VisualElement _body;
         private readonly List<Button> _tabButtons = new List<Button>();
 
-        [MenuItem("Tools/CommonEventsEngine/Event Workbench")]
+        [MenuItem("Tools/HaruChanZ64/Gameplay/CommonEventsEngine/Event Workbench", false, 132)]
         public static void OpenWindow()
         {
             var win = GetWindow<CommonEventsWorkbenchWindow>("CommonEvents Workbench");

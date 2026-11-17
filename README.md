@@ -25,7 +25,7 @@ CommonEventsEngine brings RPG Maker's top-to-bottom indented event scripting wor
   - `BuiltInScreenFader` (`IScreenTransitionHandler`) provides full-screen Fade Out/In, color Flash, and Camera Shake.
   - `BuiltInEventAudio` (`IEventAudioHandler`) manages SFX one-shots and looping BGM.
   - Instantiate an editable scene rig in one click from **GameObject > CommonEventsEngine > Create Full CommonEvents Rig**.
-- **UI Toolkit Event Workbench (`Tools > CommonEventsEngine > Event Workbench`):**
+- **UI Toolkit Event Workbench (`Tools > HaruChanZ64 > Gameplay > CommonEventsEngine > Event Workbench`):**
   - **Event Command Editor:** Indented command list, `TypeCache`-backed **+ Add Command** menu, inline property editing, reorder/delete, and live block structure validation (`If`/`EndIf`, `Loop`/`EndLoop`).
   - **Switches, Vars & Inventory:** Inspect and mutate Global Switches, Variables, Gold, and Inventory live in PlayMode or EditMode sandbox.
   - **Live Step Debugger:** Step command-by-command (`Step 1 Command`, `Tick +0.25s`) with an inline sandbox Dialogue and Choice panel right inside the Editor window.
@@ -66,7 +66,7 @@ Add the package path to `Packages/manifest.json`:
 
 1. Select **GameObject > CommonEventsEngine > Create Full CommonEvents Rig** to add a `CommonEventDirector`, editable uGUI `BuiltInDialogueBox`, `BuiltInScreenFader`, and `BuiltInEventAudio`.
 2. Right-click in the Project window and choose **Create > CommonEventsEngine > Common Event Asset**.
-3. Click **Open in Event Workbench** in the Inspector (or **Tools > CommonEventsEngine > Event Workbench**) and click **Seed Merchant Preset** to inspect a complete Dialogue, Choices, Gold, Inventory, and Flash sequence.
+3. Click **Open in Event Workbench** in the Inspector (or **Tools > HaruChanZ64 > Gameplay > CommonEventsEngine > Event Workbench**) and click **Seed Merchant Preset** to inspect a complete Dialogue, Choices, Gold, Inventory, and Flash sequence.
 4. Switch to the **Live Step Debugger** tab and click **Start Event** to play through the encounter immediately inside the Editor.
 
 ### 2. Trigger from a scene object or Canvas button

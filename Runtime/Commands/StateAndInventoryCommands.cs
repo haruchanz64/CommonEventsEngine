@@ -4,8 +4,14 @@ using UnityEngine;
 
 namespace CommonEventsEngine.Commands
 {
+    /// <summary>
+    /// Mutation applied by <see cref="SetSwitchCommand"/> to a Global Switch.
+    /// </summary>
     public enum SwitchOperation { SetOn = 0, SetOff = 1, Toggle = 2 }
 
+    /// <summary>
+    /// Arithmetic or assignment operation applied by <see cref="SetVariableCommand"/>.
+    /// </summary>
     public enum VariableOperation
     {
         Set = 0,
@@ -16,6 +22,9 @@ namespace CommonEventsEngine.Commands
         RandomIntRange = 5
     }
 
+    /// <summary>
+    /// Sets, clears, or toggles a Global Switch on <see cref="IEventExecutionContext.WorldState"/>.
+    /// </summary>
     [Serializable]
     [EventCommand("State/Set Switch", "Sets or toggles a Global Switch on WorldStateStore.")]
     public sealed class SetSwitchCommand : EventCommandBase
@@ -23,8 +32,10 @@ namespace CommonEventsEngine.Commands
         public string switchKey = "Switch_01";
         public SwitchOperation operation = SwitchOperation.SetOn;
 
+        /// <inheritdoc/>
         public override string GetDisplaySummary() => $"Switch[{switchKey}] = {operation}";
 
+        /// <inheritdoc/>
         public override CommandStatus OnStart(IEventExecutionContext ctx)
         {
             switch (operation)
@@ -37,6 +48,9 @@ namespace CommonEventsEngine.Commands
         }
     }
 
+    /// <summary>
+    /// Writes a per-owner Self-Switch slot (A through D) using <see cref="ownerKeyOverride"/> or the active frame's <see cref="IEventExecutionContext.OwnerKey"/>.
+    /// </summary>
     [Serializable]
     [EventCommand("State/Set Self-Switch", "Sets Self-Switch A/B/C/D for the owning scene trigger object.")]
     public sealed class SetSelfSwitchCommand : EventCommandBase
@@ -46,8 +60,10 @@ namespace CommonEventsEngine.Commands
         [Tooltip("Optional override; leave empty to use the triggering CommonEventTrigger's ownerKey.")]
         public string ownerKeyOverride = string.Empty;
 
+        /// <inheritdoc/>
         public override string GetDisplaySummary() => $"SelfSwitch[{slot}] = {(value ? "ON" : "OFF")}";
 
+        /// <inheritdoc/>
         public override CommandStatus OnStart(IEventExecutionContext ctx)
         {
             string owner = string.IsNullOrWhiteSpace(ownerKeyOverride) ? ctx.OwnerKey : ownerKeyOverride;
@@ -56,6 +72,9 @@ namespace CommonEventsEngine.Commands
         }
     }
 
+    /// <summary>
+    /// Assigns, modifies arithmetically, concatenates strings on, or randomizes a Global or Local Variable.
+    /// </summary>
     [Serializable]
     [EventCommand("State/Set Variable", "Assigns or modifies a Global or Local Variable.")]
     public sealed class SetVariableCommand : EventCommandBase
@@ -67,9 +86,11 @@ namespace CommonEventsEngine.Commands
         public int randomMinInclusive = 1;
         public int randomMaxInclusive = 10;
 
+        /// <inheritdoc/>
         public override string GetDisplaySummary() =>
             $"{(isLocalVariable ? "Local" : "Var")}[{variableKey}] {operation} {(operation == VariableOperation.RandomIntRange ? $"({randomMinInclusive}..{randomMaxInclusive})" : operand.ToString())}";
 
+        /// <inheritdoc/>
         public override CommandStatus OnStart(IEventExecutionContext ctx)
         {
             EventValue current = isLocalVariable
@@ -90,6 +111,10 @@ namespace CommonEventsEngine.Commands
             return CommandStatus.Completed;
         }
 
+        /// <summary>
+        /// Computes the next <see cref="EventValue"/> from <paramref name="cur"/> according to <see cref="operation"/>.
+        /// Division by zero leaves <paramref name="cur"/> unchanged; string addition concatenates operands.
+        /// </summary>
         private EventValue Compute(EventValue cur)
         {
             switch (operation)
@@ -126,6 +151,9 @@ namespace CommonEventsEngine.Commands
         }
     }
 
+    /// <summary>
+    /// Copies a value between Global and Local variable scopes.
+    /// </summary>
     [Serializable]
     [EventCommand("State/Copy Variable", "Copies a Global or Local variable into another variable key.")]
     public sealed class CopyVariableCommand : EventCommandBase
@@ -135,8 +163,10 @@ namespace CommonEventsEngine.Commands
         public string destinationKey = "Var_01";
         public bool destinationIsLocal;
 
+        /// <inheritdoc/>
         public override string GetDisplaySummary() => $"Copy {sourceKey} -> {destinationKey}";
 
+        /// <inheritdoc/>
         public override CommandStatus OnStart(IEventExecutionContext ctx)
         {
             EventValue val = sourceIsLocal
@@ -149,6 +179,9 @@ namespace CommonEventsEngine.Commands
         }
     }
 
+    /// <summary>
+    /// Adds to, subtracts from, or sets the Gold balance on <see cref="IEventExecutionContext.Inventory"/>.
+    /// </summary>
     [Serializable]
     [EventCommand("Inventory/Modify Gold", "Adds or subtracts Gold (currency) on the Inventory store.")]
     public sealed class ModifyGoldCommand : EventCommandBase
@@ -156,8 +189,10 @@ namespace CommonEventsEngine.Commands
         public int delta = 50;
         public bool setAbsolute;
 
+        /// <inheritdoc/>
         public override string GetDisplaySummary() => setAbsolute ? $"Set Gold = {delta}" : $"Gold {(delta >= 0 ? "+" : "")}{delta}";
 
+        /// <inheritdoc/>
         public override CommandStatus OnStart(IEventExecutionContext ctx)
         {
             if (ctx.Inventory != null)
@@ -169,6 +204,9 @@ namespace CommonEventsEngine.Commands
         }
     }
 
+    /// <summary>
+    /// Adds to, removes from, or sets an item's quantity on <see cref="IEventExecutionContext.Inventory"/>.
+    /// </summary>
     [Serializable]
     [EventCommand("Inventory/Modify Item", "Adds or removes item quantity by Item ID on the Inventory store.")]
     public sealed class ModifyItemCommand : EventCommandBase
@@ -177,9 +215,11 @@ namespace CommonEventsEngine.Commands
         public int delta = 1;
         public bool setAbsolute;
 
+        /// <inheritdoc/>
         public override string GetDisplaySummary() =>
             setAbsolute ? $"Set Item[{itemId}] = {delta}" : $"Item[{itemId}] {(delta >= 0 ? "+" : "")}{delta}";
 
+        /// <inheritdoc/>
         public override CommandStatus OnStart(IEventExecutionContext ctx)
         {
             if (ctx.Inventory != null)

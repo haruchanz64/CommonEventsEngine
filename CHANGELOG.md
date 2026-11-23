@@ -4,6 +4,13 @@ All notable changes to this package are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-11-23
+
+### Changed
+
+- Expanded `README.md` into a standardized developer guide covering the tick-driven pipeline, trigger modes, code examples, extension contracts, included samples, tests, and troubleshooting caveats.
+- Added XML documentation comments across public types, members, and non-trivial internal/private helpers in Runtime, Editor, and Samples.
+
 ## [1.0.0] - 2026-08-23
 
 ### Added

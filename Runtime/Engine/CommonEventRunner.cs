@@ -8,22 +8,68 @@ using UnityEngine;
 
 namespace CommonEventsEngine.Engine
 {
+    /// <summary>
+    /// Immutable-style record of a single signal broadcast stored in <see cref="CommonEventRunner.SignalHistory"/>.
+    /// </summary>
     public sealed class SignalRecord
     {
+        /// <summary>
+        /// Monotonically increasing sequence number assigned when the signal was emitted.
+        /// </summary>
         public long Sequence { get; set; }
+
+        /// <summary>
+        /// Exact signal identifier passed to <see cref="CommonEventRunner.EmitSignal"/>.
+        /// </summary>
         public string SignalName { get; set; }
+
+        /// <summary>
+        /// Optional non-null string payload attached to the signal.
+        /// </summary>
         public string Payload { get; set; }
     }
 
+    /// <summary>
+    /// Represents one active subroutine call frame on an <see cref="ActiveEventProcess.CallStack"/>.
+    /// </summary>
     public sealed class EventExecutionFrame
     {
+        /// <summary>
+        /// Event asset currently executing in this frame.
+        /// </summary>
         public CommonEventAsset EventAsset { get; }
+
+        /// <summary>
+        /// Zero-based index of the current or next command in <see cref="CommonEventAsset.commands"/>.
+        /// </summary>
         public int InstructionPointer { get; set; }
+
+        /// <summary>
+        /// Whether <see cref="EventCommandBase.OnStart"/> has already been invoked for the command at <see cref="InstructionPointer"/>.
+        /// </summary>
         public bool CurrentCommandStarted { get; set; }
+
+        /// <summary>
+        /// Owner key propagated to Self-Switch evaluations inside this frame.
+        /// </summary>
         public string OwnerKey { get; }
+
+        /// <summary>
+        /// Frame-scoped local variables initialized from subroutine call arguments.
+        /// </summary>
         public Dictionary<string, EventValue> LocalVariables { get; }
+
+        /// <summary>
+        /// Tracks completed iteration counts keyed by each <see cref="LoopCommand"/> instruction index.
+        /// </summary>
         public Dictionary<int, int> LoopIterationCounts { get; } = new Dictionary<int, int>();
 
+        /// <summary>
+        /// Initializes a new execution frame at instruction index 0.
+        /// </summary>
+        /// <param name="asset">Event asset executed by this frame.</param>
+        /// <param name="ownerKey">Optional owner key for Self-Switch lookups; null becomes an empty string.</param>
+        /// <param name="args">Optional initial local variables copied into <see cref="LocalVariables"/>.</param>
         public EventExecutionFrame(CommonEventAsset asset, string ownerKey, Dictionary<string, EventValue> args)
         {
             EventAsset = asset;
@@ -34,17 +80,54 @@ namespace CommonEventsEngine.Engine
         }
     }
 
+    /// <summary>
+    /// Tracks a running instance of a <see cref="CommonEventAsset"/> and its nested subroutine call stack.
+    /// </summary>
     public sealed class ActiveEventProcess
     {
+        /// <summary>
+        /// Short 8-character unique identifier assigned to this process instance.
+        /// </summary>
         public string ProcessId { get; } = Guid.NewGuid().ToString("N").Substring(0, 8);
+
+        /// <summary>
+        /// Root event asset that initiated this process.
+        /// </summary>
         public CommonEventAsset RootEvent { get; }
+
+        /// <summary>
+        /// Whether this process runs in the exclusive Autorun queue and may lock player control.
+        /// </summary>
         public bool IsAutorun { get; }
+
+        /// <summary>
+        /// Whether this process runs as a concurrent Parallel background event.
+        /// </summary>
         public bool IsParallel { get; }
+
+        /// <summary>
+        /// Active LIFO stack of <see cref="EventExecutionFrame"/> entries; empty once the process completes.
+        /// </summary>
         public Stack<EventExecutionFrame> CallStack { get; } = new Stack<EventExecutionFrame>();
+
+        /// <summary>
+        /// <c>true</c> when all frames have popped from <see cref="CallStack"/>.
+        /// </summary>
         public bool IsFinished => CallStack.Count == 0;
 
+        /// <summary>
+        /// Top-most frame on <see cref="CallStack"/>, or null if <see cref="IsFinished"/> is <c>true</c>.
+        /// </summary>
         public EventExecutionFrame CurrentFrame => CallStack.Count > 0 ? CallStack.Peek() : null;
 
+        /// <summary>
+        /// Creates a new active process and pushes the initial frame for <paramref name="rootEvent"/>.
+        /// </summary>
+        /// <param name="rootEvent">Entry-point event asset.</param>
+        /// <param name="ownerKey">Optional Self-Switch owner key for the root frame.</param>
+        /// <param name="args">Optional initial local variables for the root frame.</param>
+        /// <param name="isAutorun">Marks the process as an exclusive Autorun process.</param>
+        /// <param name="isParallel">Marks the process as a concurrent Parallel process.</param>
         public ActiveEventProcess(CommonEventAsset rootEvent, string ownerKey, Dictionary<string, EventValue> args, bool isAutorun, bool isParallel)
         {
             RootEvent = rootEvent;
@@ -113,30 +196,111 @@ namespace CommonEventsEngine.Engine
         private readonly List<string> _logs = new List<string>(128);
         private bool _isControlLocked;
 
+        /// <summary>
+        /// Central store holding Global Switches, Variables, Self-Switches, and default Inventory/Gold state.
+        /// </summary>
         public WorldStateStore WorldState { get; }
+
+        /// <summary>
+        /// Inventory and gold store exposed to conditions and commands; defaults to <see cref="WorldState"/>.
+        /// </summary>
         public IEventInventoryStore Inventory { get; set; }
+
+        /// <summary>
+        /// Optional presentation handler for dialogue messages and choices.
+        /// </summary>
         public IEventDialogueHandler DialogueHandler { get; set; }
+
+        /// <summary>
+        /// Optional presentation handler for screen fades, flashes, and camera shakes.
+        /// </summary>
         public IScreenTransitionHandler ScreenHandler { get; set; }
+
+        /// <summary>
+        /// Optional handler for SFX and BGM playback commands.
+        /// </summary>
         public IEventAudioHandler AudioHandler { get; set; }
+
+        /// <summary>
+        /// Registry resolving string binding keys to scene <see cref="GameObject"/> instances.
+        /// </summary>
         public SceneBindingRegistry SceneBindings { get; }
 
+        /// <summary>
+        /// Maximum nested <see cref="CallCommonEventCommand"/> call stack depth before subroutine calls are blocked with a warning log. Defaults to <c>16</c>.
+        /// </summary>
         public int MaxCallDepth { get; set; } = 16;
+
+        /// <summary>
+        /// Maximum instant commands executed per process during a single <see cref="Tick"/> call to guard against runaway loops. Defaults to <c>128</c>.
+        /// </summary>
         public int MaxInstantCommandsPerTick { get; set; } = 128;
+
+        /// <summary>
+        /// Sequence counter incremented on every <see cref="EmitSignal"/> call.
+        /// </summary>
         public long SignalSequence { get; private set; }
+
+        /// <summary>
+        /// <c>true</c> while any active Autorun process with <see cref="CommonEventAsset.lockPlayerControlOnAutorun"/> enabled is running.
+        /// </summary>
         public bool IsControlLocked => _isControlLocked;
+
+        /// <summary>
+        /// When <c>true</c>, <see cref="Tick"/> returns immediately without evaluating triggers or advancing processes.
+        /// </summary>
         public bool IsPaused { get; set; }
 
+        /// <summary>
+        /// Events registered for automatic Autorun/Parallel evaluation and <see cref="StartEventById"/> lookup.
+        /// </summary>
         public IReadOnlyList<CommonEventAsset> RegisteredEvents => _registeredEvents;
+
+        /// <summary>
+        /// Currently running processes across Manual, Autorun, and Parallel trigger modes.
+        /// </summary>
         public IReadOnlyList<ActiveEventProcess> ActiveProcesses => _activeProcesses;
+
+        /// <summary>
+        /// Rolling history of up to the 200 most recent emitted signals.
+        /// </summary>
         public IReadOnlyList<SignalRecord> SignalHistory => _signalHistory;
+
+        /// <summary>
+        /// Rolling buffer of up to the 256 most recent diagnostic log messages.
+        /// </summary>
         public IReadOnlyList<string> Logs => _logs;
 
+        /// <summary>
+        /// Raised whenever <see cref="IsControlLocked"/> transitions between <c>false</c> and <c>true</c>.
+        /// </summary>
         public event Action<bool> OnControlLockChanged;
+
+        /// <summary>
+        /// Raised with the signal name and payload whenever <see cref="EmitSignal"/> broadcasts a signal.
+        /// </summary>
         public event Action<string, string> OnSignalEmitted;
+
+        /// <summary>
+        /// Raised whenever a new process is started via <see cref="StartEvent"/> or automatic trigger evaluation.
+        /// </summary>
         public event Action<CommonEventAsset> OnEventStarted;
+
+        /// <summary>
+        /// Raised after a process finishes all frames and is removed from <see cref="ActiveProcesses"/>.
+        /// </summary>
         public event Action<CommonEventAsset> OnEventCompleted;
+
+        /// <summary>
+        /// Raised whenever a command or runner warning appends a message to <see cref="Logs"/>.
+        /// </summary>
         public event Action<string> OnLogMessage;
 
+        /// <summary>
+        /// Initializes a new runner with optional pre-existing state and scene binding registries.
+        /// </summary>
+        /// <param name="worldState">Optional state store; a fresh <see cref="WorldStateStore"/> is created if null.</param>
+        /// <param name="sceneBindings">Optional scene binding registry; a fresh <see cref="SceneBindingRegistry"/> is created if null.</param>
         public CommonEventRunner(WorldStateStore worldState = null, SceneBindingRegistry sceneBindings = null)
         {
             WorldState = worldState ?? new WorldStateStore();
@@ -144,6 +308,10 @@ namespace CommonEventsEngine.Engine
             SceneBindings = sceneBindings ?? new SceneBindingRegistry();
         }
 
+        /// <summary>
+        /// Registers an event asset for automatic Autorun/Parallel trigger evaluation and lookup by <see cref="CommonEventAsset.eventId"/>.
+        /// Duplicate or null assets are ignored.
+        /// </summary>
         public void RegisterEvent(CommonEventAsset asset)
         {
             if (asset != null && !_registeredEvents.Contains(asset))
@@ -152,6 +320,9 @@ namespace CommonEventsEngine.Engine
             }
         }
 
+        /// <summary>
+        /// Replaces all registered events with the non-null unique entries from <paramref name="assets"/>.
+        /// </summary>
         public void SetRegisteredEvents(IEnumerable<CommonEventAsset> assets)
         {
             _registeredEvents.Clear();
@@ -159,6 +330,14 @@ namespace CommonEventsEngine.Engine
             foreach (var a in assets) RegisterEvent(a);
         }
 
+        /// <summary>
+        /// Starts a new <see cref="ActiveEventProcess"/> for <paramref name="asset"/> and updates the control-lock state.
+        /// </summary>
+        /// <param name="asset">Event asset to run; returns null if null or if its command list is empty.</param>
+        /// <param name="ownerKey">Optional owner key used for Self-Switch lookups.</param>
+        /// <param name="args">Optional initial local variables passed into the root frame.</param>
+        /// <param name="forceAutorun">When <c>true</c>, schedules the process in the exclusive Autorun queue regardless of the asset's trigger mode.</param>
+        /// <returns>The created process handle, or null if <paramref name="asset"/> has no commands.</returns>
         public ActiveEventProcess StartEvent(
             CommonEventAsset asset,
             string ownerKey = null,
@@ -177,6 +356,10 @@ namespace CommonEventsEngine.Engine
             return process;
         }
 
+        /// <summary>
+        /// Finds the first registered event matching <paramref name="eventId"/> (ordinal comparison) and starts it.
+        /// </summary>
+        /// <returns>The started <see cref="ActiveEventProcess"/>, or null if no matching registered event exists.</returns>
         public ActiveEventProcess StartEventById(string eventId, string ownerKey = null, Dictionary<string, EventValue> args = null)
         {
             for (int i = 0; i < _registeredEvents.Count; i++)
@@ -189,6 +372,10 @@ namespace CommonEventsEngine.Engine
             return null;
         }
 
+        /// <summary>
+        /// Records a named signal in <see cref="SignalHistory"/> (capped at 200 entries), increments <see cref="SignalSequence"/>,
+        /// and raises <see cref="OnSignalEmitted"/>. Ignores null or whitespace signal names.
+        /// </summary>
         public void EmitSignal(string signalName, string payload = "")
         {
             if (string.IsNullOrWhiteSpace(signalName)) return;
@@ -203,6 +390,13 @@ namespace CommonEventsEngine.Engine
             OnSignalEmitted?.Invoke(signalName, payload ?? string.Empty);
         }
 
+        /// <summary>
+        /// Searches <see cref="SignalHistory"/> from newest to oldest for <paramref name="signalName"/> with a sequence strictly greater than <paramref name="afterSequence"/>.
+        /// </summary>
+        /// <param name="signalName">Exact ordinal signal name to match.</param>
+        /// <param name="afterSequence">Exclusive lower bound sequence number.</param>
+        /// <param name="payload">Receives the matched payload, or an empty string if no matching signal is found.</param>
+        /// <returns><c>true</c> if a matching signal was emitted after <paramref name="afterSequence"/>; otherwise <c>false</c>.</returns>
         public bool TryFindSignalSince(string signalName, long afterSequence, out string payload)
         {
             for (int i = _signalHistory.Count - 1; i >= 0; i--)
@@ -219,6 +413,10 @@ namespace CommonEventsEngine.Engine
             return false;
         }
 
+        /// <summary>
+        /// Cancels every active process (invoking <see cref="EventCommandBase.OnCancel"/> on active commands),
+        /// clears <see cref="ActiveProcesses"/>, and releases any active control lock.
+        /// </summary>
         public void CancelAllProcesses()
         {
             for (int i = 0; i < _activeProcesses.Count; i++)
@@ -229,11 +427,16 @@ namespace CommonEventsEngine.Engine
             UpdateControlLockState();
         }
 
+        /// <summary>
+        /// Clears all entries from <see cref="Logs"/>.
+        /// </summary>
         public void ClearLogs() => _logs.Clear();
 
         /// <summary>
-        /// Advances all scheduled Autorun, Manual, and Parallel events by deltaTime.
+        /// Evaluates automatic Autorun/Parallel triggers and advances all active processes by <paramref name="deltaTime"/> seconds.
+        /// Does nothing when <see cref="IsPaused"/> is <c>true</c>.
         /// </summary>
+        /// <param name="deltaTime">Elapsed time in seconds for this tick.</param>
         public void Tick(float deltaTime)
         {
             if (IsPaused) return;
@@ -260,8 +463,11 @@ namespace CommonEventsEngine.Engine
         }
 
         /// <summary>
-        /// Executes at most one command step on the target process (used by the UI Toolkit Live Step Debugger).
+        /// Executes at most one command step on <paramref name="process"/> (used by the UI Toolkit Live Step Debugger).
         /// </summary>
+        /// <param name="process">Target active process to step.</param>
+        /// <param name="deltaTime">Elapsed time in seconds passed if the active command is ticked.</param>
+        /// <returns><c>true</c> if <paramref name="process"/> still has remaining work; <c>false</c> if it is null or finished.</returns>
         public bool StepSingleCommand(ActiveEventProcess process, float deltaTime = 0.016f)
         {
             if (process == null || process.IsFinished) return false;
@@ -270,6 +476,10 @@ namespace CommonEventsEngine.Engine
             return !process.IsFinished;
         }
 
+        /// <summary>
+        /// Scans registered Autorun and Parallel events, starting eligible events whose conditions are met
+        /// and cancelling running Parallel events whose conditions have become false.
+        /// </summary>
         private void EvaluateAutomaticTriggers()
         {
             bool hasRunningAutorun = HasRunningAutorun();
@@ -304,6 +514,10 @@ namespace CommonEventsEngine.Engine
             }
         }
 
+        /// <summary>
+        /// Steps <paramref name="proc"/> through up to <paramref name="maxCommands"/> commands, handling structural
+        /// If/Else/Loop control flow directly and delegating other commands to <see cref="EventCommandBase.OnStart"/> and <see cref="EventCommandBase.OnTick"/>.
+        /// </summary>
         private void AdvanceProcess(ActiveEventProcess proc, float deltaTime, int maxCommands)
         {
             int executed = 0;
@@ -426,6 +640,7 @@ namespace CommonEventsEngine.Engine
                     status = cmd.OnStart(execCtx);
                     executed++;
 
+                    // Apply this tick's deltaTime once so timed waits advance during the frame they start
                     if (status == CommandStatus.Running && !consumedTickDelta && deltaTime > 0f && maxCommands > 1)
                     {
                         consumedTickDelta = true;
@@ -483,6 +698,10 @@ namespace CommonEventsEngine.Engine
             }
         }
 
+        /// <summary>
+        /// Removes completed processes from <see cref="ActiveProcesses"/>, raises <see cref="OnEventCompleted"/>,
+        /// and refreshes the player control lock state.
+        /// </summary>
         private void CleanupFinishedProcesses()
         {
             for (int i = _activeProcesses.Count - 1; i >= 0; i--)
@@ -497,6 +716,9 @@ namespace CommonEventsEngine.Engine
             UpdateControlLockState();
         }
 
+        /// <summary>
+        /// Unwinds <paramref name="proc"/>'s call stack and invokes <see cref="EventCommandBase.OnCancel"/> on any started command.
+        /// </summary>
         private void CancelProcess(ActiveEventProcess proc)
         {
             if (proc == null) return;
@@ -513,6 +735,9 @@ namespace CommonEventsEngine.Engine
             }
         }
 
+        /// <summary>
+        /// Cancels and removes all running Parallel processes backed by <paramref name="evt"/>.
+        /// </summary>
         private void CancelRunningParallel(CommonEventAsset evt)
         {
             for (int i = _activeProcesses.Count - 1; i >= 0; i--)
@@ -525,6 +750,9 @@ namespace CommonEventsEngine.Engine
             }
         }
 
+        /// <summary>
+        /// Returns <c>true</c> if any unfinished Autorun process is currently active.
+        /// </summary>
         private bool HasRunningAutorun()
         {
             for (int i = 0; i < _activeProcesses.Count; i++)
@@ -534,6 +762,9 @@ namespace CommonEventsEngine.Engine
             return false;
         }
 
+        /// <summary>
+        /// Returns <c>true</c> if <paramref name="evt"/> already has an unfinished active process.
+        /// </summary>
         private bool IsEventCurrentlyRunning(CommonEventAsset evt)
         {
             for (int i = 0; i < _activeProcesses.Count; i++)
@@ -543,6 +774,9 @@ namespace CommonEventsEngine.Engine
             return false;
         }
 
+        /// <summary>
+        /// Recomputes <see cref="IsControlLocked"/> from active Autorun processes and raises <see cref="OnControlLockChanged"/> on transitions.
+        /// </summary>
         private void UpdateControlLockState()
         {
             bool shouldLock = false;
@@ -563,6 +797,9 @@ namespace CommonEventsEngine.Engine
             }
         }
 
+        /// <summary>
+        /// Appends a message to the 256-entry rolling log buffer and notifies <see cref="OnLogMessage"/> subscribers.
+        /// </summary>
         private void AddLog(string msg)
         {
             _logs.Add(msg);
@@ -570,6 +807,9 @@ namespace CommonEventsEngine.Engine
             OnLogMessage?.Invoke(msg);
         }
 
+        /// <summary>
+        /// Scans forward from <paramref name="ifIndex"/> to locate the matching <see cref="ElseCommand"/> or <see cref="EndIfCommand"/> at nesting depth 0.
+        /// </summary>
         private static int FindMatchingElseOrEndIf(List<EventCommandBase> list, int ifIndex)
         {
             int depth = 0;
@@ -586,6 +826,9 @@ namespace CommonEventsEngine.Engine
             return list.Count - 1;
         }
 
+        /// <summary>
+        /// Scans forward from <paramref name="startIndex"/> to locate the closing <see cref="EndIfCommand"/> at nesting depth 0.
+        /// </summary>
         private static int FindMatchingEndIf(List<EventCommandBase> list, int startIndex)
         {
             int depth = 0;
@@ -601,6 +844,9 @@ namespace CommonEventsEngine.Engine
             return list.Count - 1;
         }
 
+        /// <summary>
+        /// Scans forward from <paramref name="loopIndex"/> to locate the matching <see cref="EndLoopCommand"/> at nesting depth 0.
+        /// </summary>
         private static int FindMatchingEndLoop(List<EventCommandBase> list, int loopIndex)
         {
             int depth = 0;
@@ -616,6 +862,9 @@ namespace CommonEventsEngine.Engine
             return list.Count - 1;
         }
 
+        /// <summary>
+        /// Scans forward from <paramref name="fromIndex"/> (typically a <see cref="BreakLoopCommand"/>) to find the enclosing <see cref="EndLoopCommand"/>.
+        /// </summary>
         private static int FindEnclosingEndLoop(List<EventCommandBase> list, int fromIndex)
         {
             int depth = 0;
@@ -631,6 +880,9 @@ namespace CommonEventsEngine.Engine
             return list.Count - 1;
         }
 
+        /// <summary>
+        /// Scans backward from <paramref name="fromIndex"/> to find the opening <see cref="LoopCommand"/> of the innermost enclosing loop, or <c>-1</c> if none exists.
+        /// </summary>
         private static int FindEnclosingLoopStart(List<EventCommandBase> list, int fromIndex)
         {
             int depth = 0;

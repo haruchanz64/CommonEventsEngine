@@ -1,6 +1,6 @@
 {
   "name": "com.haruchanz64.common-events-engine",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "CommonEventsEngine",
   "description": "RPG Maker-inspired Common Events, global Switches/Variables, Self-Switches, Inventory/Gold ledger, and tick-driven command scripting framework for Unity 6 with built-in uGUI Dialogue Box, Screen Fader, and a UI Toolkit Event Workbench with live step debugging.",
   "unity": "6000.0",

@@ -6,15 +6,25 @@ using UnityEngine;
 
 namespace CommonEventsEngine.Data
 {
+    /// <summary>
+    /// Describes a structural block error reported by <see cref="CommonEventAsset.ValidateStructure"/>.
+    /// </summary>
     public sealed class CommandValidationIssue
     {
+        /// <summary>
+        /// Zero-based index into <see cref="CommonEventAsset.commands"/> where the issue was detected.
+        /// </summary>
         public int CommandIndex { get; set; }
+
+        /// <summary>
+        /// Human-readable description of the structural problem.
+        /// </summary>
         public string Message { get; set; }
     }
 
     /// <summary>
     /// Reusable RPG Maker-style Common Event ScriptableObject containing trigger mode,
-    /// activation conditions, and a flat [SerializeReference] command sequence with block indentation.
+    /// activation conditions, and a flat <c>[SerializeReference]</c> command sequence with block indentation.
     /// </summary>
     [CreateAssetMenu(fileName = "CommonEvent", menuName = "CommonEventsEngine/Common Event Asset", order = 100)]
     public class CommonEventAsset : ScriptableObject
@@ -37,8 +47,9 @@ namespace CommonEventsEngine.Data
         [SerializeReference] public List<EventCommandBase> commands = new List<EventCommandBase>();
 
         /// <summary>
-        /// Computes RPG Maker-style visual indentation depths for every command index.
+        /// Computes RPG Maker-style visual indentation depths for every index in <see cref="commands"/>.
         /// </summary>
+        /// <returns>An array matching <see cref="commands"/> length where each entry is a non-negative nesting level.</returns>
         public int[] ComputeIndentDepths()
         {
             int count = commands != null ? commands.Count : 0;
@@ -67,8 +78,10 @@ namespace CommonEventsEngine.Data
         }
 
         /// <summary>
-        /// Validates matching If/Else/EndIf and Loop/BreakLoop/EndLoop structure.
+        /// Validates matching <see cref="IfCommand"/>/<see cref="ElseCommand"/>/<see cref="EndIfCommand"/>
+        /// and <see cref="LoopCommand"/>/<see cref="BreakLoopCommand"/>/<see cref="EndLoopCommand"/> nesting, plus null command slots.
         /// </summary>
+        /// <returns>List of all detected structural issues; empty when the command list is well-formed.</returns>
         public List<CommandValidationIssue> ValidateStructure()
         {
             var issues = new List<CommandValidationIssue>();
@@ -149,6 +162,10 @@ namespace CommonEventsEngine.Data
             return issues;
         }
 
+        /// <summary>
+        /// Overwrites this asset's metadata and command list with a sample Potion Merchant encounter
+        /// demonstrating dialogue, choices, nested conditionals, gold/inventory updates, and a screen flash.
+        /// </summary>
         public void ApplySampleMerchantPreset()
         {
             eventId = "evt_potion_merchant";

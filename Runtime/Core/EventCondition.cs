@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace CommonEventsEngine.Core
 {
+    /// <summary>
+    /// Selects which state source an <see cref="EventCondition"/> inspects during evaluation.
+    /// </summary>
     public enum ConditionKind
     {
         GlobalSwitch = 0,
@@ -15,6 +18,9 @@ namespace CommonEventsEngine.Core
         GoldAmount = 5
     }
 
+    /// <summary>
+    /// Relational comparison operator applied to numeric or ordinal string values.
+    /// </summary>
     public enum CompareOperator
     {
         Equal = 0,
@@ -25,12 +31,18 @@ namespace CommonEventsEngine.Core
         LessOrEqual = 5
     }
 
+    /// <summary>
+    /// Logical aggregation mode used by <see cref="EventCondition.EvaluateAll"/>.
+    /// </summary>
     public enum ConditionCombineMode
     {
         AllTrueAnd = 0,
         AnyTrueOr = 1
     }
 
+    /// <summary>
+    /// Serializable predicate evaluated against global switches, self-switches, variables, inventory counts, or gold.
+    /// </summary>
     [Serializable]
     public sealed class EventCondition
     {
@@ -41,12 +53,24 @@ namespace CommonEventsEngine.Core
         public CompareOperator compareOperator = CompareOperator.GreaterOrEqual;
         public EventValue compareValue = EventValue.FromInt(1);
 
+        /// <summary>
+        /// Evaluates this condition using the stores, owner key, and local variables from <paramref name="ctx"/>.
+        /// </summary>
+        /// <returns><c>true</c> if the predicate matches; <c>false</c> if <paramref name="ctx"/> is null or the check fails.</returns>
         public bool Evaluate(IEventExecutionContext ctx)
         {
             if (ctx == null) return false;
             return Evaluate(ctx.WorldState, ctx.Inventory, ctx.OwnerKey, ctx.TryGetLocalVariable);
         }
 
+        /// <summary>
+        /// Evaluates this condition against explicit state and inventory stores.
+        /// </summary>
+        /// <param name="state">World state store used for switches and global variables; may be null.</param>
+        /// <param name="inventory">Inventory store used for item counts and gold; null treats counts and gold as <c>0</c>.</param>
+        /// <param name="ownerKey">Optional owner key used when <see cref="kind"/> is <see cref="ConditionKind.SelfSwitch"/>.</param>
+        /// <param name="localLookup">Optional resolver used when <see cref="kind"/> is <see cref="ConditionKind.LocalVariableCompare"/>.</param>
+        /// <returns><c>true</c> if the condition holds; otherwise <c>false</c>.</returns>
         public bool Evaluate(
             WorldStateStore state,
             IEventInventoryStore inventory,
@@ -85,6 +109,9 @@ namespace CommonEventsEngine.Core
 
         private delegate bool TryLocalLookupDelegate(string k, out EventValue v);
 
+        /// <summary>
+        /// Adapts an <c>out</c>-parameter local variable lookup delegate to the tuple-returning <see cref="Evaluate(WorldStateStore, IEventInventoryStore, string, Func{string, ValueTuple{bool, EventValue}})"/> overload.
+        /// </summary>
         private bool Evaluate(WorldStateStore state, IEventInventoryStore inventory, string ownerKey, TryLocalLookupDelegate lookup)
         {
             return Evaluate(state, inventory, ownerKey, k =>
@@ -95,6 +122,16 @@ namespace CommonEventsEngine.Core
             });
         }
 
+        /// <summary>
+        /// Evaluates a list of conditions combined with <paramref name="mode"/>.
+        /// </summary>
+        /// <param name="conditions">Conditions to check; null or empty lists evaluate to <c>true</c>.</param>
+        /// <param name="mode">Whether all conditions must match (AND) or any single condition suffices (OR).</param>
+        /// <param name="state">World state store used for switch and variable checks.</param>
+        /// <param name="inventory">Inventory store used for item and gold checks.</param>
+        /// <param name="ownerKey">Optional owner key for self-switch checks.</param>
+        /// <param name="localLookup">Optional resolver for local variable checks.</param>
+        /// <returns><c>true</c> if the combined predicate passes; otherwise <c>false</c>.</returns>
         public static bool EvaluateAll(
             IReadOnlyList<EventCondition> conditions,
             ConditionCombineMode mode,
@@ -127,6 +164,9 @@ namespace CommonEventsEngine.Core
             return true;
         }
 
+        /// <summary>
+        /// Compares two <see cref="EventValue"/> instances using ordinal string comparison if either side is a string, or floating-point comparison otherwise.
+        /// </summary>
         public static bool Compare(EventValue left, EventValue right, CompareOperator op)
         {
             if (left.type == EventVariableType.String || right.type == EventVariableType.String)
@@ -137,6 +177,9 @@ namespace CommonEventsEngine.Core
             return CompareNumbers(left.AsFloat(), right.AsFloat(), op);
         }
 
+        /// <summary>
+        /// Compares two floats using <see cref="Mathf.Approximately"/> for equality tolerances.
+        /// </summary>
         private static bool CompareNumbers(float a, float b, CompareOperator op)
         {
             switch (op)
@@ -151,6 +194,9 @@ namespace CommonEventsEngine.Core
             }
         }
 
+        /// <summary>
+        /// Maps a three-way comparison result (<c>cmp</c>) to the requested <see cref="CompareOperator"/>.
+        /// </summary>
         private static bool ApplyCmp(int cmp, CompareOperator op)
         {
             switch (op)
@@ -165,6 +211,9 @@ namespace CommonEventsEngine.Core
             }
         }
 
+        /// <summary>
+        /// Formats a compact human-readable representation of this condition for command summaries.
+        /// </summary>
         public string GetSummary()
         {
             switch (kind)
@@ -179,6 +228,9 @@ namespace CommonEventsEngine.Core
             }
         }
 
+        /// <summary>
+        /// Returns the symbolic operator string (such as <c>"=="</c> or <c>"&gt;="</c>) for display summaries.
+        /// </summary>
         private static string OpSymbol(CompareOperator op)
         {
             switch (op)

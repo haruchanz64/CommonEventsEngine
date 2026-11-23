@@ -16,8 +16,10 @@ namespace CommonEventsEngine.Samples
         public string maxHpVariableKey = "PartyMaxHP";
         public int healAmount = 50;
 
+        /// <inheritdoc/>
         public override string GetDisplaySummary() => $"Heal Party +{healAmount} ({hpVariableKey})";
 
+        /// <inheritdoc/>
         public override CommandStatus OnStart(IEventExecutionContext ctx)
         {
             int cur = ctx.WorldState.GetVariable(hpVariableKey).AsInt();

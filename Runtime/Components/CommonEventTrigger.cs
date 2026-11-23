@@ -31,6 +31,10 @@ namespace CommonEventsEngine.Components
 
         private bool _triggered;
 
+        /// <summary>
+        /// Resolved owner key used for Self-Switch lookups: returns <c>ownerKey</c> when set,
+        /// or <c>"{sceneName}:{gameObjectName}"</c> when left blank.
+        /// </summary>
         public string EffectiveOwnerKey => string.IsNullOrWhiteSpace(ownerKey) ? $"{gameObject.scene.name}:{gameObject.name}" : ownerKey;
 
         private void Start()
@@ -53,7 +57,8 @@ namespace CommonEventsEngine.Components
         }
 
         /// <summary>
-        /// Zero-argument entry point bindable directly to a uGUI Canvas Button.onClick() or interaction script.
+        /// Zero-argument entry point bindable directly to a uGUI Canvas <c>Button.onClick</c> or interaction script.
+        /// Evaluates <c>requiredConditions</c> against <see cref="EffectiveOwnerKey"/> and starts <c>eventAsset</c> if all checks pass.
         /// </summary>
         public void Trigger()
         {

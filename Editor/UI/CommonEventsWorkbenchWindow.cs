@@ -14,8 +14,15 @@ using UnityEngine.UIElements;
 
 namespace CommonEventsEngine.Editor.UI
 {
+    /// <summary>
+    /// UI Toolkit EditorWindow providing an indented RPG Maker-style command editor, live WorldState/Inventory inspector,
+    /// EditMode/PlayMode step debugger with an inline dialogue sandbox, and signal/binding monitor.
+    /// </summary>
     public sealed class CommonEventsWorkbenchWindow : EditorWindow
     {
+        /// <summary>
+        /// In-window presentation stub used by the EditMode sandbox runner to capture dialogue prompts and screen/audio notes.
+        /// </summary>
         private sealed class SandboxPresentationStub : IEventDialogueHandler, IScreenTransitionHandler, IEventAudioHandler
         {
             public bool HasPendingMessage { get; private set; }
@@ -123,6 +130,9 @@ namespace CommonEventsEngine.Editor.UI
         private VisualElement _body;
         private readonly List<Button> _tabButtons = new List<Button>();
 
+        /// <summary>
+        /// Opens or focuses the Event Workbench window from the Unity top menu.
+        /// </summary>
         [MenuItem("Tools/HaruChanZ64/Gameplay/CommonEventsEngine/Event Workbench", false, 132)]
         public static void OpenWindow()
         {
@@ -131,6 +141,10 @@ namespace CommonEventsEngine.Editor.UI
             win.Show();
         }
 
+        /// <summary>
+        /// Opens the Event Workbench window and selects <paramref name="asset"/> for editing and debugging.
+        /// </summary>
+        /// <param name="asset">Target event asset to bind to the workbench.</param>
         public static void OpenWithAsset(CommonEventAsset asset)
         {
             var win = GetWindow<CommonEventsWorkbenchWindow>("CommonEvents Workbench");
@@ -168,6 +182,9 @@ namespace CommonEventsEngine.Editor.UI
             }
         }
 
+        /// <summary>
+        /// Lazily constructs the EditMode sandbox <see cref="CommonEventRunner"/> seeded with 100 Gold and the inline presentation stub.
+        /// </summary>
         private void EnsureSandboxRunner()
         {
             if (_sandboxRunner != null) return;
@@ -191,6 +208,9 @@ namespace CommonEventsEngine.Editor.UI
             }
         }
 
+        /// <summary>
+        /// Builds the workbench UI Toolkit hierarchy, binds the stylesheet and asset picker, and renders the active tab.
+        /// </summary>
         private void CreateGUI()
         {
             var root = rootVisualElement;
@@ -253,6 +273,9 @@ namespace CommonEventsEngine.Editor.UI
             RebuildBody();
         }
 
+        /// <summary>
+        /// Creates a navigation tab button, registers it for active-state styling, and appends it to <paramref name="parent"/>.
+        /// </summary>
         private void AddTab(VisualElement parent, string label, Tab tab)
         {
             var btn = new Button(() =>
@@ -267,6 +290,9 @@ namespace CommonEventsEngine.Editor.UI
             parent.Add(btn);
         }
 
+        /// <summary>
+        /// Updates the active USS class across all tab buttons to match <c>_activeTab</c>.
+        /// </summary>
         private void UpdateTabStyles()
         {
             for (int i = 0; i < _tabButtons.Count; i++)
@@ -275,6 +301,9 @@ namespace CommonEventsEngine.Editor.UI
             }
         }
 
+        /// <summary>
+        /// Clears the scroll container and rebuilds UI elements for the currently selected workbench tab.
+        /// </summary>
         private void RebuildBody()
         {
             if (_body == null) return;
@@ -290,7 +319,10 @@ namespace CommonEventsEngine.Editor.UI
             }
         }
 
-        // ==================== TAB 1: EVENT COMMAND EDITOR ====================
+        /// <summary>
+        /// Builds Tab 1 (Event Command Editor) with trigger mode controls, structural validation warnings,
+        /// an indented command sequence list, and an inline <see cref="PropertyField"/> inspector.
+        /// </summary>
         private void BuildEditorTab()
         {
             var evt = ActiveEvent;
@@ -416,6 +448,10 @@ namespace CommonEventsEngine.Editor.UI
             }
         }
 
+        /// <summary>
+        /// Displays a context menu populated via <see cref="TypeCache"/> with all concrete <see cref="EventCommandBase"/> subclasses
+        /// and inserts the selected command after the currently selected line.
+        /// </summary>
         private void ShowAddCommandMenu()
         {
             var menu = new GenericMenu();
@@ -453,6 +489,9 @@ namespace CommonEventsEngine.Editor.UI
             menu.ShowAsContext();
         }
 
+        /// <summary>
+        /// Swaps the command at <paramref name="idx"/> with the adjacent slot at <c>idx + delta</c>, recording Undo state.
+        /// </summary>
         private void MoveCommand(int idx, int delta)
         {
             var evt = ActiveEvent;
@@ -467,6 +506,9 @@ namespace CommonEventsEngine.Editor.UI
             RebuildBody();
         }
 
+        /// <summary>
+        /// Removes the command at <paramref name="idx"/> from the active event asset, recording Undo state.
+        /// </summary>
         private void DeleteCommand(int idx)
         {
             var evt = ActiveEvent;
@@ -478,7 +520,9 @@ namespace CommonEventsEngine.Editor.UI
             RebuildBody();
         }
 
-        // ==================== TAB 2: WORLD STATE & INVENTORY ====================
+        /// <summary>
+        /// Builds Tab 2 (Switches, Vars and Inventory) for live inspection and mutation of the active <see cref="WorldStateStore"/>.
+        /// </summary>
         private void BuildWorldStateTab()
         {
             var runner = ActiveRunner;
@@ -578,7 +622,10 @@ namespace CommonEventsEngine.Editor.UI
             _body.Add(invCard);
         }
 
-        // ==================== TAB 3: LIVE STEP DEBUGGER ====================
+        /// <summary>
+        /// Builds Tab 3 (Live Step Debugger) with step/tick controls, inline sandbox dialogue and choice prompts,
+        /// live instruction pointer highlighting, and recent runner logs.
+        /// </summary>
         private void BuildDebuggerTab()
         {
             var evt = ActiveEvent;
@@ -684,6 +731,9 @@ namespace CommonEventsEngine.Editor.UI
             }
         }
 
+        /// <summary>
+        /// Cancels any existing processes and starts <see cref="ActiveEvent"/> under the <c>"WorkbenchSandbox"</c> owner key.
+        /// </summary>
         private void StartSandboxEvent()
         {
             var runner = ActiveRunner;
@@ -692,7 +742,9 @@ namespace CommonEventsEngine.Editor.UI
             _sandboxProcess = runner.StartEvent(ActiveEvent, ownerKey: "WorkbenchSandbox");
         }
 
-        // ==================== TAB 4: SIGNALS & BINDINGS ====================
+        /// <summary>
+        /// Builds Tab 4 (Signals and Bindings) for manually emitting signals and inspecting signal history and scene bindings.
+        /// </summary>
         private void BuildSignalsTab()
         {
             var runner = ActiveRunner;
@@ -735,6 +787,9 @@ namespace CommonEventsEngine.Editor.UI
             _body.Add(bindCard);
         }
 
+        /// <summary>
+        /// Creates a styled card container with a title header label.
+        /// </summary>
         private static VisualElement MakeCard(string title)
         {
             var card = new VisualElement();
@@ -745,6 +800,9 @@ namespace CommonEventsEngine.Editor.UI
             return card;
         }
 
+        /// <summary>
+        /// Creates a styled workbench <see cref="Button"/> with an optional USS variant class.
+        /// </summary>
         private static Button MakeBtn(string text, string variant, Action onClick)
         {
             var btn = new Button(onClick) { text = text };

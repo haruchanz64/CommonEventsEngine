@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace CommonEventsEngine.Data
 {
+    /// <summary>
+    /// Initial Global Switch entry authored in a <see cref="WorldStateDatabase"/> asset.
+    /// </summary>
     [Serializable]
     public sealed class SwitchDefinition
     {
@@ -14,6 +17,9 @@ namespace CommonEventsEngine.Data
         public string description = string.Empty;
     }
 
+    /// <summary>
+    /// Initial typed Global Variable entry authored in a <see cref="WorldStateDatabase"/> asset.
+    /// </summary>
     [Serializable]
     public sealed class VariableDefinition
     {
@@ -22,6 +28,9 @@ namespace CommonEventsEngine.Data
         public string description = string.Empty;
     }
 
+    /// <summary>
+    /// Starting inventory item definition authored in a <see cref="WorldStateDatabase"/> asset.
+    /// </summary>
     [Serializable]
     public sealed class ItemDefinition
     {
@@ -46,6 +55,10 @@ namespace CommonEventsEngine.Data
         [Min(0)] public int startingGold = 100;
         public List<ItemDefinition> startingItems = new List<ItemDefinition>();
 
+        /// <summary>
+        /// Clears <paramref name="store"/> and populates it with this database's starting gold, switches, variables, and items.
+        /// </summary>
+        /// <param name="store">Target store to reset and seed; null stores are ignored.</param>
         public void ApplyTo(WorldStateStore store)
         {
             if (store == null) return;

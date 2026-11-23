@@ -16,6 +16,9 @@ namespace CommonEventsEngine.Presentation
             EnsureSources();
         }
 
+        /// <summary>
+        /// Lazily attaches dedicated <see cref="AudioSource"/> components for SFX and looping BGM if unassigned.
+        /// </summary>
         private void EnsureSources()
         {
             if (sfxSource == null)
@@ -31,6 +34,7 @@ namespace CommonEventsEngine.Presentation
             }
         }
 
+        /// <inheritdoc/>
         public void PlaySfx(AudioClip clip, float volume = 1f, float pitch = 1f)
         {
             if (clip == null) return;
@@ -39,6 +43,7 @@ namespace CommonEventsEngine.Presentation
             sfxSource.PlayOneShot(clip, volume);
         }
 
+        /// <inheritdoc/>
         public void PlayBgm(AudioClip clip, float volume = 0.8f, bool loop = true)
         {
             if (clip == null) return;
@@ -49,6 +54,7 @@ namespace CommonEventsEngine.Presentation
             bgmSource.Play();
         }
 
+        /// <inheritdoc/>
         public void StopBgm()
         {
             if (bgmSource != null && bgmSource.isPlaying)

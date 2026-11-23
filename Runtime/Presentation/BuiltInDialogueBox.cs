@@ -62,6 +62,10 @@ namespace CommonEventsEngine.Presentation
             }
         }
 
+        /// <summary>
+        /// Ensures the dialogue Canvas hierarchy exists; wires <c>continueButton</c> if custom references are assigned,
+        /// or constructs a default ScreenSpaceOverlay uGUI dialogue and choices layout using <c>LegacyRuntime.ttf</c>.
+        /// </summary>
         public void EnsureUiBuilt()
         {
             if (dialogueRoot != null)
@@ -182,6 +186,7 @@ namespace CommonEventsEngine.Presentation
             dialogueRoot = canvasGo;
         }
 
+        /// <inheritdoc/>
         public void ShowMessage(string speakerName, string message, Sprite portrait, Action onCompleted)
         {
             EnsureUiBuilt();
@@ -214,6 +219,7 @@ namespace CommonEventsEngine.Presentation
             }
         }
 
+        /// <inheritdoc/>
         public void ShowChoices(string prompt, IReadOnlyList<string> choices, int cancelChoiceIndex, Action<int> onChoiceSelected)
         {
             EnsureUiBuilt();
@@ -260,6 +266,10 @@ namespace CommonEventsEngine.Presentation
             }
         }
 
+        /// <summary>
+        /// Completes the typewriter reveal if still typing; otherwise hides the dialogue panel and invokes the pending completion callback.
+        /// Can be invoked from custom input scripts or the Continue button.
+        /// </summary>
         public void AdvanceOrCompleteMessage()
         {
             if (!_awaitingMessageAdvance) return;
@@ -277,6 +287,10 @@ namespace CommonEventsEngine.Presentation
             cb?.Invoke();
         }
 
+        /// <summary>
+        /// Resolves an active choice prompt with <paramref name="choiceIndex"/>, clears spawned choice buttons, and hides the panel.
+        /// </summary>
+        /// <param name="choiceIndex">Zero-based index of the chosen option.</param>
         public void SelectChoice(int choiceIndex)
         {
             var cb = _onChoiceDone;
@@ -286,6 +300,7 @@ namespace CommonEventsEngine.Presentation
             cb?.Invoke(choiceIndex);
         }
 
+        /// <inheritdoc/>
         public void CancelActiveDialogue()
         {
             _isTyping = false;
@@ -296,12 +311,18 @@ namespace CommonEventsEngine.Presentation
             HidePanel();
         }
 
+        /// <summary>
+        /// Immediately reveals the full message text and stops the typewriter reveal loop.
+        /// </summary>
         private void FinishTypewriter()
         {
             _isTyping = false;
             if (bodyText != null) bodyText.text = _fullMessage;
         }
 
+        /// <summary>
+        /// Destroys all dynamically created choice button objects (using <see cref="Object.DestroyImmediate(Object)"/> in EditMode).
+        /// </summary>
         private void ClearChoiceButtons()
         {
             for (int i = 0; i < _spawnedChoiceButtons.Count; i++)

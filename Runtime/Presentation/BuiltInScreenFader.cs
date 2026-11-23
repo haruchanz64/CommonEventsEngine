@@ -28,6 +28,9 @@ namespace CommonEventsEngine.Presentation
             EnsureOverlayBuilt();
         }
 
+        /// <summary>
+        /// Ensures a full-screen overlay <see cref="Image"/> exists, creating a ScreenSpaceOverlay Canvas child if none is assigned.
+        /// </summary>
         public void EnsureOverlayBuilt()
         {
             if (overlayImage != null) return;
@@ -51,6 +54,7 @@ namespace CommonEventsEngine.Presentation
             overlayImage.raycastTarget = false;
         }
 
+        /// <inheritdoc/>
         public void StartFade(Color targetColor, float targetAlpha, float durationSeconds, Action onCompleted)
         {
             EnsureOverlayBuilt();
@@ -66,6 +70,7 @@ namespace CommonEventsEngine.Presentation
             _fadeRoutine = StartCoroutine(FadeRoutine(targetColor, targetAlpha, durationSeconds, onCompleted));
         }
 
+        /// <inheritdoc/>
         public void StartFlash(Color flashColor, float durationSeconds, Action onCompleted)
         {
             EnsureOverlayBuilt();
@@ -81,6 +86,7 @@ namespace CommonEventsEngine.Presentation
             _flashRoutine = StartCoroutine(FlashRoutine(flashColor, durationSeconds, onCompleted));
         }
 
+        /// <inheritdoc/>
         public void StartCameraShake(float intensity, float durationSeconds, Action onCompleted)
         {
             if (_shakeRoutine != null) StopCoroutine(_shakeRoutine);
@@ -95,6 +101,7 @@ namespace CommonEventsEngine.Presentation
             _shakeRoutine = StartCoroutine(ShakeRoutine(cam, intensity, durationSeconds, onCompleted));
         }
 
+        /// <inheritdoc/>
         public void CancelTransitions()
         {
             if (_fadeRoutine != null) { StopCoroutine(_fadeRoutine); _fadeRoutine = null; }
@@ -109,6 +116,9 @@ namespace CommonEventsEngine.Presentation
             }
         }
 
+        /// <summary>
+        /// Interpolates <c>overlayImage.color</c> toward <paramref name="targetColor"/> and <paramref name="targetAlpha"/> using unscaled time.
+        /// </summary>
         private IEnumerator FadeRoutine(Color targetColor, float targetAlpha, float duration, Action onCompleted)
         {
             Color start = overlayImage.color;
@@ -125,6 +135,9 @@ namespace CommonEventsEngine.Presentation
             onCompleted?.Invoke();
         }
 
+        /// <summary>
+        /// Decays <paramref name="flashColor"/> from its peak alpha (or <c>0.8</c> if zero) down to transparent using unscaled time.
+        /// </summary>
         private IEnumerator FlashRoutine(Color flashColor, float duration, Action onCompleted)
         {
             float peakAlpha = flashColor.a > 0f ? flashColor.a : 0.8f;
@@ -141,6 +154,9 @@ namespace CommonEventsEngine.Presentation
             onCompleted?.Invoke();
         }
 
+        /// <summary>
+        /// Jitters <paramref name="cam"/> along local X and Y with linear damping over <paramref name="duration"/> and restores its original local position.
+        /// </summary>
         private IEnumerator ShakeRoutine(Camera cam, float intensity, float duration, Action onCompleted)
         {
             if (!_hasSavedCamPos)

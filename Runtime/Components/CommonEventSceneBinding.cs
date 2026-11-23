@@ -12,6 +12,9 @@ namespace CommonEventsEngine.Components
         [SerializeField] private string bindingKey = "Player";
         [SerializeField] private CommonEventDirector explicitDirector;
 
+        /// <summary>
+        /// String key under which this <see cref="GameObject"/> is registered while enabled.
+        /// </summary>
         public string BindingKey => bindingKey;
 
         private void OnEnable()
@@ -26,6 +29,9 @@ namespace CommonEventsEngine.Components
             registry?.Unregister(bindingKey, gameObject);
         }
 
+        /// <summary>
+        /// Resolves the target <see cref="SceneBindingRegistry"/> from <c>explicitDirector</c> or <see cref="CommonEventDirector.ActiveInstance"/>.
+        /// </summary>
         private SceneBindingRegistry ResolveRegistry()
         {
             var dir = explicitDirector != null ? explicitDirector : CommonEventDirector.ActiveInstance;
